@@ -1,0 +1,31 @@
+---------- KYC GERAL ------------
+
+
+SELECT distinct
+m.MERCHANT_CODE,
+su.EMAIL,
+ac.LEGAL_TYPE_C AS legal_type,
+mas.SUBSTATE,
+mas.STATE,
+kas.NAME AS "ACTION NAME",
+kl.comment,
+kl.action_time::date as action_time,
+FROM SUMUP_DWH_PROD.src_payment.merchants m 
+LEFT JOIN SUMUP_DWH_PROD.src_payment.merchant_account_statuses mas ON mas.merchant_id = m.id
+LEFT JOIN SUMUP_DWH_PROD.src_payment.kyc_logs kl ON kl.merchant_id = m.id
+LEFT JOIN SUMUP_DWH_PROD.src_payment.kyc_actions ka ON ka.id = kl.kyc_action_id
+LEFT JOIN SUMUP_DWH_PROD.src_payment.kyc_action_statuses kas ON kas.id = kl.kyc_action_status_id
+LEFT JOIN SUMUP_DWH_PROD.src_payment.superusers su ON su.id = kl.operator_id
+left join SUMUP_DWH_PROD.ANALYST_OPERATIONS.OPS_SCHEDULE sch on sch.agent = su.email and sch.date = kl.action_time::date
+left join SUMUP_DWH_PROD.analyst_risk_and_fraud.teams_2 t2 on t2.email = su.email
+LEFT JOIN SUMUP_DWH_PROD.SRC_SALESFORCE.ACCOUNT ac ON kl.merchant_id = ac.merchant_id_upon_creation_c
+LEFT JOIN SUMUP_DWH_PROD.SRC_SALESFORCE.CONTACT sc ON sc.ACCOUNT_ID = ac.ID
+WHERE 1=1
+AND ac.LEGAL_TYPE_C NOT IN ('Pessoa Física','Micro Empreendedor Individual (MEI)')
+AND kl.ACTION_TIME::date >= '2025-10-06' ---- ajuste de período a ser monitorado ----
+AND kl.comment not LIKE '%KYCEDDBR%'
+AND su.EMAIL NOT LIKE 'NULL'
+AND ac.COUNTRY_C = 'Brazil'
+AND kas.id in ('45', '27', '189','1227','1228')
+---AND su.EMAIL in ('inserir e-mail do agent')
+--QUALIFY ROW_NUMBER() OVER (PARTITION BY kl.MERCHANT_ID ORDER BY kl.action_time desc) = 1
