@@ -22,10 +22,10 @@ LEFT JOIN SUMUP_DWH_PROD.SRC_SALESFORCE.ACCOUNT ac ON kl.merchant_id = ac.mercha
 LEFT JOIN SUMUP_DWH_PROD.SRC_SALESFORCE.CONTACT sc ON sc.ACCOUNT_ID = ac.ID
 WHERE 1=1
 AND ac.LEGAL_TYPE_C NOT IN ('Pessoa Física','Micro Empreendedor Individual (MEI)')
-AND kl.ACTION_TIME::date >= '2025-10-06' ---- ajuste de período a ser monitorado ----
+AND kl.ACTION_TIME::date >= '2025-07-16'---- ajuste de período a ser monitorado ----
 AND kl.comment not LIKE '%KYCEDDBR%'
 AND su.EMAIL NOT LIKE 'NULL'
 AND ac.COUNTRY_C = 'Brazil'
-AND kas.id in ('45', '27', '189','1227','1228')
+AND kas.id in ('45', '27')
 ---AND su.EMAIL in ('inserir e-mail do agent')
 --QUALIFY ROW_NUMBER() OVER (PARTITION BY kl.MERCHANT_ID ORDER BY kl.action_time desc) = 1
