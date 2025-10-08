@@ -1,0 +1,8 @@
+select te.merchant_id, 
+count(t.id) as count_txs, sum(event_amount) as total_amount
+from SUMUP_DWH_PROD.SRC_PAYMENT.TRANSACTION_EVENTS te 
+left join SUMUP_DWH_PROD.SRC_PAYMENT.transactions t on te.transaction_id = t.id and t.currency = 'BRL'
+where t.tx_result = '11'
+and  te.merchant_id in ('3036748')
+and te.current_status_id in (17, 21, 101) -- roger_that, withheld, payout_failed
+group by 1
