@@ -1,0 +1,22 @@
+WITH merchants_list as (
+
+SELECT
+    iu.merchant_code,
+    iu.merchant_id,
+    iu.bank_kyc_status_updated,
+    iu.account_substatus_updated,
+    CEIL(ROW_NUMBER() OVER (ORDER BY merchant_code,account_substatus_updated) / 140000) AS recreation_batch_num
+FROM OPERATIONS_BR_PROD.OPERATIONS_BR_MART.BR_REKYC_INACTIVE_UPDATED iu
+LEFT JOIN OPERATIONS_BR_DEV.OPERATIONS_BR_MART.BR_REKYC_PERFORMANCE USING(merchant_code)
+WHERE TRUE
+    AND VER_ONB_UPDATED ILIKE '%No%'
+    AND (kyc_finished_at IS NULL OR kyc_finished_at < '2024-12-01' OR bank_kyc_status_updated = 'required')
+    AND iu.account_status_updated NOT IN ('BLOCKED')
+    and batch_date not in ('2025-03-28','2025-04-07','2025-04-22','2025-04-24','2025-04-25','2025-04-30','2025-05-02','2025-05-12','2025-05-13','2025-05-14','2025-05-15','2025-05-16','2025-05-19','2025-05-20','2025-05-21','2025-05-22','2025-05-23','2025-05-26','2025-05-30','2025-06-04','2025-06-27','2025-07-04','2025-07-14')
+QUALIFY ROW_NUMBER() OVER (ORDER BY account_substatus_updated, batch_date) IS NOT NULL
+ORDER BY iu.account_substatus_updated, batch_date
+)
+
+Select *
+from merchants_list
+where recreation_batch_num = '5' 
