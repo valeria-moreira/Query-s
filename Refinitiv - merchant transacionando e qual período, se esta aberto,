@@ -1,0 +1,20 @@
+select
+    ver.merchant_code,
+    ver.merchant_account_state as account_state,
+    ver.merchant_account_substate as substate,
+    ver.merchant_sign_up_at::date as signup_date,
+    case 
+        when tpv.last_successful_transaction_at::date >= current_date - interval '30 day' 
+        or tpv.LAST_ANY_TRANSACTION_AT::date >= current_date - interval '30 day'
+             then 'Within 30 days'
+        else 'More than 30 days'
+    end as transaction_classification,
+    case 
+        when date_trunc('month', ver.merchant_sign_up_at) = date_trunc('month', current_date)
+            then 'This Month'
+        else extract(year from ver.merchant_sign_up_at)::text
+    end as signup_classification
+from GLOBAL_ANALYST_PROD.MART_CORE.PAYMENTS_MERCHANT_METRICS tpv
+full outer join global_analyst_prod.mart_growth.verification_merchant_verification_status ver
+    on ver.merchant_code = tpv.merchant_code
+where coalesce(ver.merchant_code, tpv.merchant_code) in ('MJTEBEGR','MCPFNPUF')
